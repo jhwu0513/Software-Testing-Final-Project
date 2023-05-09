@@ -34,7 +34,7 @@ class LocalService:
             elif voter.name in Voter_dict:
                 status = voting_pb2.Status()
                 status.code = 1
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # undefined error
             status = voting_pb2.Status()
             status.code = 2
@@ -50,7 +50,7 @@ class LocalService:
             elif voter_name.name not in Voter_dict:
                 status = voting_pb2.Status()
                 status.code = 1
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # undefined error
             status = voting_pb2.Status()
             status.code = 2
@@ -120,7 +120,7 @@ class eVotingServicer(voting_pb2_grpc.eVotingServicer):
             self.auth_tokens[Base64Encoder.encode(auth_reponse.value)] = [name, current_date.seconds,Voter_dict[name][0]]
             print(f"Current Stored Auth Token: {self.auth_tokens}")
 
-        except Exception as e: 
+        except Exception as e:
             print(e)
             auth_reponse.value = e.__repr__().encode()
 
@@ -146,7 +146,7 @@ class eVotingServicer(voting_pb2_grpc.eVotingServicer):
                     self.election[request.name][choice] = 0
             createElection_reponse.code = 0
             return createElection_reponse
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             # unknown error
             createElection_reponse.code = 3
             print(e)
@@ -198,58 +198,62 @@ class eVotingServicer(voting_pb2_grpc.eVotingServicer):
         print(getResult_reponse)
         return getResult_reponse
 
-def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    voting_pb2_grpc.add_eVotingServicer_to_server(eVotingServicer(), server)
-    local_api = LocalService()
-    
-    while True:
+class serve:
+    api_call = 0
+    address = 0
+    port = 0
+    name = ""
+    def __init__(self):
+        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        voting_pb2_grpc.add_eVotingServicer_to_server(eVotingServicer(), server)
         print("1. RegisterVoter")
         print("2. UnregisterVoter")
         print("3. List Voter ")
-        print("4. Leave registration ")
-        api_call = input("Which Local Server API would you like to make ? ")
-        if api_call == "1":
+        self.api_call = input("Which Local Server API would you like to make ? ")
+        self.Reg()
+
+        self.address = input("Server address (127.0.0.1): ")
+        if not self.address: self.address = "127.0.0.1"
+
+        self.port = input("Service port (50000): ")
+        if not self.port: self.port = 50000
+        
+        server.add_insecure_port(f"{self.address}:{self.port}")
+        server.start()
+        server.wait_for_termination()
+
+    def Reg(self):
+        local_api = LocalService()
+        if self.api_call == "1":
             with open('voter.txt') as f:
                 lines = f.readlines()
                 for i in range(len(lines)):
                     data = lines[i].split(' ')
-                    name = data[0]
+                    self.name = data[0]
                     group = data[1]
                     seed = base64.b64decode(data[2])
                     sk = SigningKey(seed)
                     public_key = sk.verify_key._key
                     voter = voting_pb2.Voter()
-                    voter.name = name
+                    voter.name = self.name
                     voter.group = group
                     voter.public_key = public_key
                     status = local_api.RegisterVoter(voter)
                     print("Status : ",status)
-        elif api_call == "2":
-            name = input("voter name: ")
+            return Voter_dict
+        elif self.api_call == "2":
+            self.name = input("voter name: ")
             voter = voting_pb2.VoterName()
-            voter.name = name
+            voter.name = self.name
             status = local_api.UnregisterVoter(voter)
-            print("Status : ",status)
-        elif api_call == "3":
+            print("Status : ",status.code)
+            return Voter_dict
+        elif self.api_call == "3":
             for x in Voter_dict:
                 print (x,':',Voter_dict[x])
-        elif api_call == "4":
-            break
+            return Voter_dict
         else:
             print("Invalid input.\n")
-            exit(1)
-        print()
 
-    address = input("Server address (127.0.0.1): ")
-    if not address: address = "127.0.0.1"
-
-    port = input("Service port (50000): ")
-    if not port: port = 50000
-    
-    server.add_insecure_port(f"{address}:{port}")
-    server.start()
-    server.wait_for_termination()
-
-if __name__ == "__main__":
-    serve()
+if __name__ == "__main__": # pragma: no cover
+    serv = serve()
