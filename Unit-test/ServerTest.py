@@ -68,6 +68,26 @@ class Test(unittest.TestCase):
             response = self.evs.Auth(request, None)
             self.assertIsInstance(response.value, bytes)
     
+    def test_CreateElection_valid(self):
+        self.evs.VerifyAuthToken = Mock(return_value = True)
+        request = voting_pb2.Election()
+        request.token.value = b'token'
+        request.name = 'election1'
+        request.choices.append('students')
+        request.groups.append('A')
+        request.groups.append('B')
+        request.end_date.GetCurrentTime()
+        request.end_date.seconds = int(datetime.now().timestamp() + 3600)
+        response = self.evs.CreateElection(request, None)
+
+    def test_CreateElection_invalid_1(self):
+        self.evs.VerifyAuthToken = Mock(return_value = False)
+        response = self.evs.CreateElection(voting_pb2.Election(), None)
+        
+    def test_CreateElection_invalid_2(self):
+        self.evs.VerifyAuthToken = Mock(return_value = True)
+        response = self.evs.CreateElection(voting_pb2.Election(), None)
+
     @patch('voting_server.grpc.server')
     @patch('voting_server.voting_pb2_grpc.add_eVotingServicer_to_server')
     @patch('builtins.input', side_effect=["1", "127.0.0.1", "50000"])
