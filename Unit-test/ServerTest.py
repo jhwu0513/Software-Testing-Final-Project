@@ -69,14 +69,17 @@ class Test(unittest.TestCase):
         request.end_date.GetCurrentTime()
         request.end_date.seconds = int(datetime.now().timestamp() + 3600)
         response = self.evs.CreateElection(request, None)
+        self.assertEqual(response.code,0)
 
     def test_CreateElection_invalid_1(self):
         self.evs.VerifyAuthToken = Mock(return_value = False)
         response = self.evs.CreateElection(voting_pb2.Election(), None)
-        
+        self.assertEqual(response.code,1)
+
     def test_CreateElection_invalid_2(self):
         self.evs.VerifyAuthToken = Mock(return_value = True)
         response = self.evs.CreateElection(voting_pb2.Election(), None)
+        self.assertEqual(response.code,2)
 
     def test_CastVote_valid(self):
         self.evs.VerifyAuthToken = Mock(return_value = True)
@@ -89,14 +92,17 @@ class Test(unittest.TestCase):
             token = voting_pb2.AuthToken(value= b'token')
         )
         response = self.evs.CastVote(request, None)
+        self.assertEqual(response.code,0)
 
     def test_CastVote_invalid_1(self):
         self.evs.VerifyAuthToken = Mock(return_value = False)
         response = self.evs.CastVote(voting_pb2.Vote(), None)
+        self.assertEqual(response.code,1)
     
     def test_CastVote_invalid_2(self):
         self.evs.VerifyAuthToken = Mock(return_value = True)
         response = self.evs.CastVote(voting_pb2.Vote(), None)
+        self.assertEqual(response.code,2)
     
     def test_CastVote_invalid_3(self):
         self.evs.VerifyAuthToken = Mock(return_value = True)
@@ -109,6 +115,7 @@ class Test(unittest.TestCase):
             token = voting_pb2.AuthToken(value= b'token')
         )
         response = self.evs.CastVote(request, None)
+        self.assertEqual(response.code,3)
     
     def test_CastVote_invalid_4(self):
         self.evs.VerifyAuthToken = Mock(return_value = True)
@@ -121,6 +128,7 @@ class Test(unittest.TestCase):
             token = voting_pb2.AuthToken(value= b'token')
         )
         response = self.evs.CastVote(request, None)
+        self.assertEqual(response.code,4)
 
     def test_GetResult_valid(self):
         token = b'token'
@@ -130,10 +138,12 @@ class Test(unittest.TestCase):
         self.evs.election = {"Hi":{"group":["students"],"voted":[Base64Encoder.encode(token)],"endate":end_date,"A":0,"B":0}}
         request = voting_pb2.ElectionName(name = "Hi")
         response = self.evs.GetResult(request, None)
+        self.assertEqual(response.status,0)
     
     def test_GetResult_invalid_1(self):
         request = voting_pb2.ElectionName(name = "Hi")
         response = self.evs.GetResult(request, None)
+        self.assertEqual(response.status,1)
     
     def test_GetResult_invalid_2(self):
         token = b'token'
@@ -143,6 +153,7 @@ class Test(unittest.TestCase):
         self.evs.election = {"Hi":{"group":["students"],"voted":[Base64Encoder.encode(token)],"endate":end_date,"A":0,"B":0}}
         request = voting_pb2.ElectionName(name = "Hi")
         response = self.evs.GetResult(request, None)
+        self.assertEqual(response.status,2)
 
     @patch('voting_server.grpc.server')
     @patch('voting_server.voting_pb2_grpc.add_eVotingServicer_to_server')
