@@ -7,22 +7,12 @@ import voting_server
 import voting_pb2
 from nacl.encoding import Base64Encoder
 import voting_pb2_grpc
+from google.protobuf.timestamp_pb2 import Timestamp
 from datetime import datetime, timedelta
 from parameterized import parameterized
 from nacl.signing import SigningKey
 
 class Test(unittest.TestCase):
-    # def test_RegisterVoter_Exception(self):
-    #     voter = voting_pb2.Voter(name=b"test", group=b"group", public_key=b"public_key")
-    #     # with self.assertRaises(Exception) as cm:
-    #     #     service = voting_server.LocalService()
-    #     #     service.RegisterVoter = Mock(side_effect=Exception("Something went wrong"))
-    #     #     result = service.RegisterVoter(voter)
-    #     #     self.assertEqual(result.code, 2)
-    #     with patch.dict('voting_server.Voter_dict', side_effect=Exception('something went wrong')):
-    #         with self.assertRaises(Exception):
-    #             service = LocalService()
-    #             result = service.RegisterVoter(voter)
     def setUp(self):
         self.evs = voting_server.eVotingServicer()
 
@@ -130,8 +120,29 @@ class Test(unittest.TestCase):
             choice_name = "A",
             token = voting_pb2.AuthToken(value= b'token')
         )
-
         response = self.evs.CastVote(request, None)
+
+    def test_GetResult_valid(self):
+        token = b'token'
+        dt = datetime.fromisoformat("2023-01-01T00:00:00")
+        end_date = Timestamp()
+        end_date.FromDatetime(dt)
+        self.evs.election = {"Hi":{"group":["students"],"voted":[Base64Encoder.encode(token)],"endate":end_date,"A":0,"B":0}}
+        request = voting_pb2.ElectionName(name = "Hi")
+        response = self.evs.GetResult(request, None)
+    
+    def test_GetResult_invalid_1(self):
+        request = voting_pb2.ElectionName(name = "Hi")
+        response = self.evs.GetResult(request, None)
+    
+    def test_GetResult_invalid_2(self):
+        token = b'token'
+        dt = datetime.fromisoformat("3000-01-01T00:00:00")
+        end_date = Timestamp()
+        end_date.FromDatetime(dt)
+        self.evs.election = {"Hi":{"group":["students"],"voted":[Base64Encoder.encode(token)],"endate":end_date,"A":0,"B":0}}
+        request = voting_pb2.ElectionName(name = "Hi")
+        response = self.evs.GetResult(request, None)
 
     @patch('voting_server.grpc.server')
     @patch('voting_server.voting_pb2_grpc.add_eVotingServicer_to_server')
