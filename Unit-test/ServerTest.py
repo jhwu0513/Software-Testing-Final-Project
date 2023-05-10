@@ -88,6 +88,51 @@ class Test(unittest.TestCase):
         self.evs.VerifyAuthToken = Mock(return_value = True)
         response = self.evs.CreateElection(voting_pb2.Election(), None)
 
+    def test_CastVote_valid(self):
+        self.evs.VerifyAuthToken = Mock(return_value = True)
+        token = b'token'
+        self.evs.auth_tokens[Base64Encoder.encode(token)] = ['Bob', (datetime.now() + timedelta(hours=1)).timestamp(), 'students']
+        self.evs.election = {"Hi":{"group":["students"],"voted":[],"endate":123456789,"A":0,"B":0}}
+        request = voting_pb2.Vote(
+            election_name = "Hi", 
+            choice_name = "A",
+            token = voting_pb2.AuthToken(value= b'token')
+        )
+        response = self.evs.CastVote(request, None)
+
+    def test_CastVote_invalid_1(self):
+        self.evs.VerifyAuthToken = Mock(return_value = False)
+        response = self.evs.CastVote(voting_pb2.Vote(), None)
+    
+    def test_CastVote_invalid_2(self):
+        self.evs.VerifyAuthToken = Mock(return_value = True)
+        response = self.evs.CastVote(voting_pb2.Vote(), None)
+    
+    def test_CastVote_invalid_3(self):
+        self.evs.VerifyAuthToken = Mock(return_value = True)
+        token = b'token'
+        self.evs.election = {"Hi":{"group":["students"],"voted":[],"endate":123456789,"A":0,"B":0}}
+        self.evs.auth_tokens[Base64Encoder.encode(token)] = ['Bob', (datetime.now() + timedelta(hours=1)).timestamp(), 'A']
+        request = voting_pb2.Vote(
+            election_name = "Hi", 
+            choice_name = "A",
+            token = voting_pb2.AuthToken(value= b'token')
+        )
+        response = self.evs.CastVote(request, None)
+    
+    def test_CastVote_invalid_4(self):
+        self.evs.VerifyAuthToken = Mock(return_value = True)
+        token = b'token'
+        self.evs.election = {"Hi":{"group":["students"],"voted":[Base64Encoder.encode(token)],"endate":123456789,"A":0,"B":0}}
+        self.evs.auth_tokens[Base64Encoder.encode(token)] = ['Bob', (datetime.now() + timedelta(hours=1)).timestamp(), 'students']
+        request = voting_pb2.Vote(
+            election_name = "Hi", 
+            choice_name = "A",
+            token = voting_pb2.AuthToken(value= b'token')
+        )
+
+        response = self.evs.CastVote(request, None)
+
     @patch('voting_server.grpc.server')
     @patch('voting_server.voting_pb2_grpc.add_eVotingServicer_to_server')
     @patch('builtins.input', side_effect=["1", "127.0.0.1", "50000"])
