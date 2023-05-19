@@ -1,6 +1,6 @@
 # Test for gRPC Server
 
-## Create an environment for executing gRPC
+## Create an environment for executing gRPC client/server
 
 This guide gets you started with gRPC in Python with a simple working example.
 
