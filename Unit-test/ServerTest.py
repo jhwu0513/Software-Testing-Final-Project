@@ -580,20 +580,6 @@ class Test(unittest.TestCase):
         response = self.evs.CastVote(request, None)
         self.assertEqual(response.code,3)
         print("test_CastVote_invalid_3_1")
-
-    def test_CastVote_invalid_3_2(self): # 共1種情況
-        self.evs.VerifyAuthToken = Mock(return_value = True)
-        token = b'token'
-        self.evs.election = {"rgwrgw":{"group":["esrdth"],"voted":[],"endate":123456789,"A":0,"B":0}}
-        self.evs.auth_tokens[Base64Encoder.encode(token)] = ['Bob', (datetime.now() + timedelta(hours=1)).timestamp(), 'A']
-        request = voting_pb2.Vote(
-            election_name = "rgwrgw", 
-            choice_name = "A",
-            token = voting_pb2.AuthToken(value= b'token')
-        )
-        response = self.evs.CastVote(request, None)
-        self.assertEqual(response.code,3)
-        print("test_CastVote_invalid_3_2")
     
     def test_CastVote_invalid_3_2(self): # 共1種情況
         self.evs.VerifyAuthToken = Mock(return_value = True)
