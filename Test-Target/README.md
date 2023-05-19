@@ -1,4 +1,4 @@
-# Part II. Single-Node e-Voting Server
+# Single-Node e-Voting Server
 In the project, you will implement the voting logic of the e-Voting server. We assume that there is just one single voting server. The voting clients will connect to the voting server to participate in the elections.
 
 ## Usage
