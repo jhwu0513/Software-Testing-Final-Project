@@ -1,4 +1,4 @@
-# Part III. Fuzzing testing e-Voting Server
+# Fuzzing testing e-Voting Server
 
 In this section, we will be using [protofuzz](https://github.com/trailofbits/protofuzz) and [fuzzdb](https://github.com/fuzzdb-project/fuzzdb) to perform fuzzing tests on gRPC. The following will describe the usage.
 
