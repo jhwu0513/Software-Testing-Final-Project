@@ -1,7 +1,7 @@
 import afl
 import os
 import sys
-sys.path.append(r"../Test-Target")
+sys.path.append(r"../../Test-Target")
 import voting_pb2_grpc
 import voting_pb2
 import grpc
